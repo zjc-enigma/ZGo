@@ -29,10 +29,5 @@ class Board(object):
         else:
             print "error position"
 
-
-    
-
-
-
 if __name__ == "__main__":
     pass
