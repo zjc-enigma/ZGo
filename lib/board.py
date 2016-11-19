@@ -9,7 +9,7 @@ class Board(object):
 
     def __init__(self, size=19):
         self.size = size
-        self.board = np.zeros((size, size))
+        self.board = np.zeros((size, size), dtype=int)
         self.board.fill(self.EMPTY)
         self.turns_num = 0
         self.current_move = self.BLACK
@@ -28,6 +28,12 @@ class Board(object):
 
         else:
             print "error position"
+
+    # def show_board():
+    #     for pos_array in board:
+    #         print(" ".join(map(str, list(pos_array))) + "\n")
+
+
 
 if __name__ == "__main__":
     pass

@@ -1068,6 +1068,35 @@ Board.default = {
 	background: WGo.DIR+"wood1.jpg"
 }
 
+var tool = document.getElementById("tool"); // get the <select> element
+
+  board.addEventListener("click", function(x, y) {
+    if(tool.value == "black") {
+      board.addObject({
+        x: x,
+        y: y,
+        c: WGo.B
+      });
+    }
+    else if(tool.value == "white") {
+      board.addObject({
+        x: x,
+        y: y,
+        c: WGo.W
+      });
+    }
+    else if(tool.value == "remove") {
+      board.removeObjectsAt(x, y);
+    }
+    else {
+      board.addObject({
+        x: x,
+        y: y,
+        type: tool.value
+      });
+    }
+  });
+
 // save Board
 WGo.Board = Board;
 
