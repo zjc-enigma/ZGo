@@ -14,7 +14,6 @@ class Board(object):
         self.turns_num = 0
         self.current_move = self.BLACK
 
-
     def _is_valid_pos(position):
         return True
 
