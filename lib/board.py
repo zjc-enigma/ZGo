@@ -26,7 +26,7 @@ class Board(object):
             self.board[x][y] = self.current_move
 
         else:
-            print "error position"
+            print("error position")
 
     # def show_board():
     #     for pos_array in board:
