@@ -1,4 +1,6 @@
 import numpy as np
+import collections.abc
+import abc
 from enum import Enum
 
 class IllegalMove(Exception):
@@ -26,36 +28,88 @@ class Position:
 
 
 
-class Board:
+class Block:
 
+    def __init__(self, color, coordinate_set, air_set):
+
+        self.color = color
+        self.coordinate_set = coordinate_set
+        self.air_set = air_set
+        self.air = len(air_set)
+        # TODO
+        self.is_alive = True
+
+    def __add__(self, other):
+        if self.color == other.color:
+            new_coordinate_set = self.coordinate_set | other.coordinate_set
+            new_air_set = self.air_set | other.air_set - new_coordinate_set
+            return Block(self.color, new_coordinate_set, new_air_set)
+
+
+
+class Board:
 
     def __init__(self, size=19):
         self.size = size
         self.state = [[Position(i, j) for i in range(size)]
                       for j in range(size)]
 
-        self.blocks_dict = {}
+        self.block_dict = {}
 
         self.move_num = 0
         self.current_move = Color.black
 
 
-    def _is_valid_pos(self, pos):
-        pass
+    def __getitem__(self, index):
+        x, y = index
+        return self.state[x][y]
 
-    
-    def show_stat(self):
-        pass
-
-    def _get_neighbors(self, pos):
-
-    def move(self, pos):
+    def _is_valid_pos(self, coordinate):
         pass
 
 
+    def show_state(self):
+        pass
+
+
+    def _get_neighbors_coordinate(self, coordinate):
+        x, y = coordinate
+        neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+        return filter(self._is_valid_pos, neighbors)
+
+
+    def _update_current_move(self):
+        self.current_move = -self.current_move
+
+    def _calc_air(self, blocks):
+        pass
+
+
+    def _calc_block(self, coordinate):
+        neighbors_coordinate = self._get_neighbors_coordinate(coordinate)
+        new_block = {coordinate}
+        new_block_id = max(list(self.block_dict.keys())) + 1
+
+        for coord in neighbors_coordinate:
+            neighbor = self[coord]
+            if neighbor.color == self.current_move:
+                new_block |= self.block_dict[neighbor.block_id]
+                del self.
 
 
 
+
+
+    def move(self, coordinate):
+
+        self._update_current_move()
+
+
+
+
+class TestSlice:
+    def __getitem__(self, index):
+        return index
 
 
 
