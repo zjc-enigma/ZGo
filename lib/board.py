@@ -1,11 +1,66 @@
 import numpy as np
-
+from enum import Enum
 
 class IllegalMove(Exception):
     pass
 
 
+class Color(Enum):
+    black = 1
+    white = -1
+    empty = 0
+
+class Position:
+
+    def __init__(self, x, y, color=Color.empty):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.is_calced_air = False
+        # default empty pos, not belong to any blocks
+        self.block_id = -1
+        # default empty pos, not need to calc air
+        self.air = -1
+        # if is ko , next cannot move here
+        self.is_ko = False
+
+
+
 class Board:
+
+
+    def __init__(self, size=19):
+        self.size = size
+        self.state = [[Position(i, j) for i in range(size)]
+                      for j in range(size)]
+
+        self.blocks_dict = {}
+
+        self.move_num = 0
+        self.current_move = Color.black
+
+
+    def _is_valid_pos(self, pos):
+        pass
+
+    
+    def show_stat(self):
+        pass
+
+    def _get_neighbors(self, pos):
+
+    def move(self, pos):
+        pass
+
+
+
+
+
+
+
+
+
+class Board_BAK:
     WHITE = -1
     BLACK = 1
     EMPTY = 0
@@ -15,6 +70,7 @@ class Board:
         self.board = np.zeros((size, size), dtype=int)
         self.board.fill(self.EMPTY)
         self.turns_num = 0
+        self.sets = set()
         self.current_move = self.BLACK
 
     def _is_valid_pos(self, position):
@@ -22,10 +78,8 @@ class Board:
         x, y = position
         if x < 0 or y < 0 or x >= self.size or y >= self.size:
             return False
-
         if self.board(position) != self.EMPTY:
             return False
-
         else:
             return True
 
