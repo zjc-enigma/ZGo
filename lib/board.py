@@ -1,7 +1,9 @@
 import numpy as np
 import collections.abc
 import abc
+from operator import add
 from enum import Enum
+from collections import namedtuple
 
 class IllegalMove(Exception):
     pass
@@ -11,33 +13,38 @@ class Color(Enum):
     black = 1
     white = -1
     empty = 0
+    black_sig = 'O'
+    white_sig = 'X'
+    empty_sig = '.'
 
-class Position:
 
-    def __init__(self, x, y, color=Color.empty):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.is_calced_air = False
-        # default empty pos, not belong to any blocks
-        self.block_id = -1
-        # default empty pos, not need to calc air
-        self.air = -1
-        # if is ko , next cannot move here
-        self.is_ko = False
 
+Position = namedtuple('Position', ['color', 'block_id', 'is_ko'])
+
+# class Position:
+#     def __init__(self, x, y, color=Color.empty):
+#         self.x = x
+#         self.y = y
+#         self.color = color
+#         # default empty pos, not belong to any blocks
+#         self.block_id = None
+#         # if is ko , next cannot move here
+#         self.is_ko = False
 
 
 class Block:
 
-    def __init__(self, color, coordinate_set, air_set):
-
+    def __init__(self, color, coordinate_set, air_set, block_id=None):
+        self.block_id = block_id
         self.color = color
         self.coordinate_set = coordinate_set
         self.air_set = air_set
-        self.air = len(air_set)
         # TODO
         self.is_alive = True
+
+    @property
+    def air(self):
+        return len(self.air_set)
 
     def __add__(self, other):
         if self.color == other.color:
@@ -46,19 +53,20 @@ class Block:
             return Block(self.color, new_coordinate_set, new_air_set)
 
 
-
 class Board:
 
     def __init__(self, size=19):
         self.size = size
-        self.state = [[Position(i, j) for i in range(size)]
-                      for j in range(size)]
+        self.state = [
+            [
+                Position(Color.empty, None, False)
+                for i in range(size)
+            ]
+            for j in range(size)]
 
         self.block_dict = {}
-
         self.move_num = 0
         self.current_move = Color.black
-
 
     def __getitem__(self, index):
         x, y = index
@@ -67,16 +75,13 @@ class Board:
     def _is_valid_pos(self, coordinate):
         pass
 
-
     def show_state(self):
         pass
-
 
     def _get_neighbors_coordinate(self, coordinate):
         x, y = coordinate
         neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
         return filter(self._is_valid_pos, neighbors)
-
 
     def _update_current_move(self):
         self.current_move = -self.current_move
@@ -85,16 +90,66 @@ class Board:
         pass
 
 
+    def _add_block(self, block):
+
+        new_block_id = max(list(self.block_dict.keys())) + 1
+        block.block_id = new_block_id
+        self.block_dict[new_block_id] = block
+        return new_block_id
+
+
+    def _merge_blocks(self, block_id_list):
+        merged_block = reduce(add, [self.block_dict[block_id]
+                                    for block_id in block_id_list])
+
+        for block_id in block_id_list:
+            del self.block_dict[block_id]
+
+        new_block_id = self._add_block(merged_block)
+        return new_block_id
+
+
+    def _eat_block(self, block_id):
+        block_to_eat = self.block_dict[block_id]
+        del self.block_dict[block_id]
+
+        for coord in block_to_eat.coordinate_set:
+            pos = self[coord]
+            pos.color = Color.empty
+            pos.block_id = None
+
+
     def _calc_block(self, coordinate):
         neighbors_coordinate = self._get_neighbors_coordinate(coordinate)
-        new_block = {coordinate}
-        new_block_id = max(list(self.block_dict.keys())) + 1
+
+        air_set = set()
+        merge_block_id_list = []
 
         for coord in neighbors_coordinate:
+
             neighbor = self[coord]
             if neighbor.color == self.current_move:
-                new_block |= self.block_dict[neighbor.block_id]
-                del self.
+                merge_block_list.append(neighbor.block_id)
+
+            elif neighbor.color == Color.empty:
+                air_set.add(coord)
+
+            else:
+                # reduce oppsite air
+                enemy_block = self.block_dict[neighbor.block_id]
+                enemy_block.air_set.remove(coord)
+                if enemy_block.air == 0:
+                    self._eat_block(neighbor.block_id)
+
+
+        new_block = Block(self.current_move, set([coordinate]), air_set)
+        new_block_id = self._add_block(new_block)
+
+        if len(merge_block_id_list) > 0:
+            # more than one blocks, need to merge
+            merge_block_list.append(new_block_id)
+            self._merge_blocks(merge_block_id_list)
+
 
 
 
@@ -105,13 +160,9 @@ class Board:
         self._update_current_move()
 
 
-
-
 class TestSlice:
     def __getitem__(self, index):
         return index
-
-
 
 
 class Board_BAK:
@@ -137,7 +188,6 @@ class Board_BAK:
         else:
             return True
 
-
     def _get_neighbors(self, position):
         x, y = position
         left = (x-1 , y)
@@ -157,10 +207,7 @@ class Board_BAK:
             elif self.board[pos] == self.board[position]:
                 air += self._calc_air(pos)
 
-
         return air
-
-
 
     def _update_state(self):
         self.current_move = -self.current_move
@@ -179,7 +226,6 @@ class Board_BAK:
         else:
             raise IllegalMove("Cannot place handicap on a started game")
             print("error position")
-
 
 
 if __name__ == "__main__":
