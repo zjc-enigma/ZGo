@@ -1,5 +1,7 @@
 __all__ = ["SimpleHTTPRequestHandler"]
-
+import sys
+sys.path.append('..')
+from lib import board
 import os
 import posixpath
 import http.server
@@ -33,7 +35,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     server_version = "SimpleHTTPWithUpload/"
 
     def do_GET(self):
-        #pdb.set_trace()
+
         f = self.send_head()
         if f:
             self.copyfile(f, self.wfile)

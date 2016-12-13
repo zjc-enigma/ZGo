@@ -24,10 +24,7 @@ class Color(Enum):
 
         else:
             return cls.white
-
-
-#Position = namedtuple('Position', ['color', 'block_id', 'is_ko'])
-
+        
 class Position:
     def __init__(self, color=Color.empty, block_id=None, is_ko=False):
         self.color = color
@@ -109,8 +106,10 @@ class Board:
                             for coord in neighbors_coordinate
                             if self[coord].color != self.current_color]
 
+            # all friend blocks have no air
             is_last_air = all(block.air_set == {coordinate} for block in friend_blocks)
-            is_eatting_enemy = all(block.air_set == {coordinate} for block in enemy_blocks)
+            # at least eat one enemy block
+            is_eatting_enemy = any(block.air_set == {coordinate} for block in enemy_blocks)
 
             if is_last_air and not is_eatting_enemy:
                 return False
@@ -170,8 +169,6 @@ class Board:
             pos = self[coord]
             print("eat", pos.color, "at", coord)
             self._reset_pos(pos)
-
-
 
 
     def _update_state(self, coordinate):
