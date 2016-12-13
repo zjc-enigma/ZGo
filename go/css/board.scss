@@ -1,0 +1,63 @@
+.board {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 608px;
+	height: 608px;
+	// background-color: #ff9500;
+}
+
+.place {
+	width: (100% / 19);
+	height: (100% / 19);
+	-webkit-backface-visibility: hidden;
+	position: relative;
+	overflow: hidden;
+
+	span {
+		display: inline-block;
+	}
+}
+.place:before {
+	width: 100%;
+	height: 100%;
+	content: "";
+	position: absolute;
+	background: url("../img/grid.svg");
+	background-size: 100%;
+}
+.corner-tl:before {
+	background: url("../img/corner.svg");
+}
+.corner-tr:before {
+	background: url("../img/corner.svg");
+	transform: rotate(90deg);
+}
+.corner-br:before {
+	background: url("../img/corner.svg");
+	transform: rotate(180deg);
+}
+.corner-bl:before {
+	background: url("../img/corner.svg");
+	transform: rotate(270deg);
+}
+
+.side-t:before {
+	background: url("../img/side.svg");
+}
+.side-r:before {
+	background: url("../img/side.svg");
+	transform: rotate(90deg);
+}
+.side-b:before {
+	background: url("../img/side.svg");
+	transform: rotate(180deg);
+}
+.side-l:before {
+	background: url("../img/side.svg");
+	transform: rotate(270deg);
+}
+
+.special {
+	background: url("../img/special.svg");
+}
