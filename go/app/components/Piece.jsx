@@ -1,7 +1,7 @@
 
 import React from "react"
 
-import { BLACK, WHITE } from "../logic"
+import { BLACK, WHITE } from "../logic/logic"
 
 require("../css/Piece.scss")
 

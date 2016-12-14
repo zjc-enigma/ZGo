@@ -1,10 +1,10 @@
 const webpack = require('webpack');
 
 module.exports = {
-    entry: "./index",
+    entry: "./app/index",
     output: {
         path: __dirname,
-        filename: "app.js"
+        filename: "./static/app.js"
     },
     resolve: {
         extensions: ['', '.js', '.jsx']

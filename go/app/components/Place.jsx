@@ -3,7 +3,7 @@ import React from "react"
 import { Component } from "react"
 
 import Piece from "./Piece"
-import { BOARD_SIZE } from "../constants"
+import { BOARD_SIZE } from "../constants/constants"
 
 let A = 0
 let B = BOARD_SIZE - 1
