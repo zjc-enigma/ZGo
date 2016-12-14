@@ -12,10 +12,28 @@ app = Flask(__name__, static_folder="../static", template_folder="../templates")
 api = Api(app)
 
 
+
+class NextBoard(Resource):
+
+    def post(self):
+        print("recv:", request.json)
+        return {
+            "name": "infinite",
+            "level": 9
+        }
+
+
+    def get(self):
+        pass
+
+
+api.add_resource(NextBoard, '/get_next_move')
+
+
+
 @app.route('/')
 def index():
     return render_template("index.html")
-
 
 
 

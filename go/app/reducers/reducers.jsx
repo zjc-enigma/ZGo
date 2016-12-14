@@ -40,19 +40,28 @@ const controller = (state, action) => {
 		board: nextBoard,
 		turn: state.turn + 1,
 		ko: ko,
-	}	
+	}
 }
 
+
+
+const remoteController = (state, action) => {
+
+}
+
+
 export const game = (state={}, action) => {
+  console.log("action", action)
 	switch (action.type) {
-	case actions.SET_STONE:
-		return controller(state, action)
-	default:
-		return {
-			board: Array(19 * 19).fill(null),
-			turn: 0,
-			ko: null,
-		}
+	  case actions.SET_STONE:
+      return remoteController(state, action)
+
+    default:
+      return {
+        board: Array(19 * 19).fill(null),
+        turn: 0,
+			  ko: null,
+      }
 	}
 }
 

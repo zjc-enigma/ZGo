@@ -23206,7 +23206,7 @@
 	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	  value: true
 	});
 	exports.Board = undefined;
 
@@ -23239,40 +23239,72 @@
 	__webpack_require__(219);
 
 	var Board = exports.Board = function (_Component) {
-		_inherits(Board, _Component);
+	  _inherits(Board, _Component);
 
-		function Board() {
-			_classCallCheck(this, Board);
+	  function Board(props, context) {
+	    _classCallCheck(this, Board);
 
-			return _possibleConstructorReturn(this, (Board.__proto__ || Object.getPrototypeOf(Board)).apply(this, arguments));
-		}
+	    return _possibleConstructorReturn(this, (Board.__proto__ || Object.getPrototypeOf(Board)).call(this, props, context));
+	  }
 
-		_createClass(Board, [{
-			key: "render",
-			value: function render() {
-				var _props = this.props,
-				    board = _props.board,
-				    dispatch = _props.dispatch,
-				    turn = _props.turn;
+	  _createClass(Board, [{
+	    key: "updateBoard",
+	    value: function updateBoard(json) {
+	      console.log('updateBoard:', json);
+	      console.log('this.props', this.props.dispatch);
+	      this.props.dispatch({
+	        type: "UPDATE_BOARD",
+	        data: json
+	      });
+	    }
+	  }, {
+	    key: "getNextBoard",
+	    value: function getNextBoard(pos) {
+	      var _this2 = this;
 
-				console.log("PROPS: ", this.props);
-				return _react2.default.createElement(
-					"div",
-					{ className: "board" },
-					board.map(function (s, i) {
-						return _react2.default.createElement(_Place2.default, { key: i, index: i, state: s, onClick: function onClick() {
-								dispatch(actions.setStone(i, turn));
-							} });
-					})
-				);
-			}
-		}]);
+	      console.log('action.position:', pos);
+	      fetch("/get_next_move", { method: 'POST',
+	        headers: {
+	          'Accept': 'application/json',
+	          'Content-Type': 'application/json'
+	        },
+	        body: JSON.stringify({ position: pos })
+	      }).then(function (res) {
+	        return res.json();
+	      }).then(function (json) {
+	        return _this2.updateBoard(json);
+	      }).catch(function (e) {
+	        console.log('get next board failed', e);
+	      });
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      var _this3 = this;
 
-		return Board;
+	      console.log("PROPS: ", this.props);
+	      var _props = this.props,
+	          board = _props.board,
+	          dispatch = _props.dispatch,
+	          turn = _props.turn;
+
+	      return _react2.default.createElement(
+	        "div",
+	        { className: "board" },
+	        board.map(function (s, i) {
+	          return _react2.default.createElement(_Place2.default, { key: i, index: i, state: s, onClick: function onClick() {
+	              _this3.getNextBoard(i);
+	            } });
+	        })
+	      );
+	    }
+	  }]);
+
+	  return Board;
 	}(_react.Component);
 
 	exports.default = (0, _reactRedux.connect)(function (state) {
-		return state;
+	  return state;
 	})(Board);
 
 /***/ },
@@ -24049,13 +24081,17 @@
 		});
 	};
 
+	var remoteController = function remoteController(state, action) {};
+
 	var game = exports.game = function game() {
 		var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 		var action = arguments[1];
 
+		console.log("action", action);
 		switch (action.type) {
 			case actions.SET_STONE:
-				return controller(state, action);
+				return remoteController(state, action);
+
 			default:
 				return {
 					board: Array(19 * 19).fill(null),
