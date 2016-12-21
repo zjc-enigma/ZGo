@@ -17,10 +17,9 @@ export class Board extends Component {
 
   updateBoard(json) {
     console.log('updateBoard:', json)
-    console.log('this.props', this.props.dispatch)
     this.props.dispatch({
       type: "UPDATE_BOARD",
-      data: json
+      pos: json.pos
     })
   }
 
@@ -37,7 +36,7 @@ export class Board extends Component {
       })
       .then(res => res.json())
       .then(json => this.updateBoard(json))
-      .catch(e => {console.log('get next board failed', e)})
+      .catch(e => {console.log('/get_next_move failed', e)})
   }
 
 

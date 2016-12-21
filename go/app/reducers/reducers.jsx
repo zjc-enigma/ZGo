@@ -58,11 +58,12 @@ export const game = (state={}, action) => {
       return remoteController(state, action)
 
     case "UPDATE_BOARD":
-      console.log('RECv pos:', action.position.pos)
+      console.log('RECV pos:', action.pos)
+
       let nextBoard = [
-		    ...state.board.slice(0, action.position.pos),
+		    ...state.board.slice(0, action.pos),
 		    logic.playerType(state.turn),
-		    ...state.board.slice(action.position.pos + 1)
+		    ...state.board.slice(action.pos + 1)
       ]
 
       return {
