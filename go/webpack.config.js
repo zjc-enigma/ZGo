@@ -1,8 +1,9 @@
 const webpack = require('webpack');
 
 module.exports = {
-    entry: "./app/index",
-    output: {
+  entry: "./app/index",
+  devtool: 'source-map',
+  output: {
         path: __dirname,
         filename: "./static/app.js"
     },

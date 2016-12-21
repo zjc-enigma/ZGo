@@ -7,6 +7,7 @@ from flask import url_for
 from flask import send_from_directory, request, Response
 from flask import render_template
 from flask_restful import Resource, Api, fields, marshal_with, reqparse
+import random
 
 app = Flask(__name__, static_folder="../static", template_folder="../templates")
 api = Api(app)
@@ -18,8 +19,7 @@ class NextBoard(Resource):
     def post(self):
         print("recv:", request.json)
         return {
-            "name": "infinite",
-            "level": 9
+            "pos": random.randint(0, 360),
         }
 
 

@@ -2,6 +2,16 @@
 if (window.parent !== window) {
 	window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = window.parent.__REACT_DEVTOOLS_GLOBAL_HOOK__;
 }
+import { createDevTools } from 'redux-devtools'
+import LogMonitor from 'redux-devtools-log-monitor'
+import DockMonitor from 'redux-devtools-dock-monitor'
+
+
+const DevTools = createDevTools(
+  <DockMonitor toggleVisibilityKey="ctrl-h" changePositionKey="ctrl-q">
+    <LogMonitor theme="tomorrow" preserveScrollTop={false} />
+  </DockMonitor>
+)
 
 // Master css
 require("./styles/style.scss")
@@ -16,7 +26,9 @@ import Board from "./components/Board"
 import game from "./reducers/reducers"
 
 const store = createStore(
-	game, applyMiddleware(thunk)
+	game,
+  applyMiddleware(thunk),
+  DevTools.instrument()
 );
 
 if (process.env.NODE_ENV !== 'production') {
@@ -31,7 +43,10 @@ if (process.env.NODE_ENV !== 'production') {
 
 ReactDOM.render(
 	<Provider store={store}>
+    <div>
 		<Board />
+    <DevTools />
+    </div>
 	</Provider>,
 	document.getElementById('root')
 );

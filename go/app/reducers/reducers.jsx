@@ -2,6 +2,7 @@ import { combineReducers } from "redux"
 
 import * as actions from "../actions/actions"
 import * as logic from "../logic/logic"
+//import { BLACK, WHITE } from "../logic/logic"
 
 const controller = (state, action) => {
 	if (state.board[action.position] != null) {
@@ -55,6 +56,20 @@ export const game = (state={}, action) => {
 	switch (action.type) {
 	  case actions.SET_STONE:
       return remoteController(state, action)
+
+    case "UPDATE_BOARD":
+      console.log('RECv pos:', action.position.pos)
+      let nextBoard = [
+		    ...state.board.slice(0, action.position.pos),
+		    logic.playerType(state.turn),
+		    ...state.board.slice(action.position.pos + 1)
+      ]
+
+      return {
+        board: nextBoard,
+        turn: state.turn + 1,
+        ko: null,
+      }
 
     default:
       return {
