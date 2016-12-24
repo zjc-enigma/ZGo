@@ -19,7 +19,7 @@ export class Board extends Component {
     console.log('updateBoard:', json)
     this.props.dispatch({
       type: "UPDATE_BOARD",
-      pos: json.pos
+      data: json
     })
   }
 

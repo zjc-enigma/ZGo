@@ -8,16 +8,34 @@ from flask import send_from_directory, request, Response
 from flask import render_template
 from flask_restful import Resource, Api, fields, marshal_with, reqparse
 import random
+sys.path.append('../../lib')
+from board import Board
 
 app = Flask(__name__, static_folder="../static", template_folder="../templates")
 api = Api(app)
+
+board = Board()
+
+
+
 
 
 
 class NextBoard(Resource):
 
+    def _pos_to_coordinate(self, pos):
+        x = int(pos % 19)
+        y = int(pos / 19)
+        print ("coordinate:", (x, y))
+        return (x, y)
+
+
     def post(self):
         print("recv:", request.json)
+        pos = request.json['position']
+        coordinate = self._pos_to_coordinate(pos)
+
+        board.move(coordinate)
         return {
             "pos": random.randint(0, 360),
         }

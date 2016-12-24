@@ -24,7 +24,8 @@ class Color(Enum):
 
         else:
             return cls.white
-        
+
+
 class Position:
     def __init__(self, color=Color.empty, block_id=None, is_ko=False):
         self.color = color
@@ -57,6 +58,7 @@ class Board:
 
     def __init__(self, size=19):
         self.size = size
+
         self.state = [
             [
                 Position(Color.empty, None, False)
@@ -161,6 +163,8 @@ class Board:
         pos.color = Color.empty
         pos.block_id = None
 
+
+
     def _eat_block(self, block_id):
         block_to_eat = self.block_dict[block_id]
         del self.block_dict[block_id]
@@ -216,6 +220,8 @@ class Board:
         self.show_state()
         self._change_turn()
 
+
+
 if __name__ == "__main__":
     # TODO: need more tests
     b = Board()
@@ -225,11 +231,7 @@ if __name__ == "__main__":
     b.move((4,3))
     b.move((2,3))
     b.move((4,5))
-
-
     b.move((3,5))
-
-
     b.move((5,5))
     b.move((5,3))
     b.move((5,4))

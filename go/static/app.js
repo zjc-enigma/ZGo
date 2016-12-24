@@ -211,6 +211,7 @@
 	  TOGGLE_ACTION: 'TOGGLE_ACTION',
 	  SET_ACTIONS_ACTIVE: 'SET_ACTIONS_ACTIVE',
 	  JUMP_TO_STATE: 'JUMP_TO_STATE',
+	  JUMP_TO_ACTION: 'JUMP_TO_ACTION',
 	  IMPORT_STATE: 'IMPORT_STATE',
 	  LOCK_CHANGES: 'LOCK_CHANGES',
 	  PAUSE_RECORDING: 'PAUSE_RECORDING'
@@ -253,6 +254,9 @@
 	  },
 	  jumpToState: function jumpToState(index) {
 	    return { type: ActionTypes.JUMP_TO_STATE, index: index };
+	  },
+	  jumpToAction: function jumpToAction(actionId) {
+	    return { type: ActionTypes.JUMP_TO_ACTION, actionId: actionId };
 	  },
 	  importState: function importState(nextLiftedState, noRecompute) {
 	    return { type: ActionTypes.IMPORT_STATE, nextLiftedState: nextLiftedState, noRecompute: noRecompute };
@@ -572,6 +576,15 @@
 	          // which state is considered the current one. Useful for sliders.
 	          currentStateIndex = liftedAction.index;
 	          // Optimization: we know the history has not changed.
+	          minInvalidatedStateIndex = Infinity;
+	          break;
+	        }
+	      case ActionTypes.JUMP_TO_ACTION:
+	        {
+	          // Jumps to a corresponding state to a specific action.
+	          // Useful when filtering actions.
+	          var _index = stagedActionIds.indexOf(liftedAction.actionId);
+	          if (_index !== -1) currentStateIndex = _index;
 	          minInvalidatedStateIndex = Infinity;
 	          break;
 	        }
@@ -38057,7 +38070,7 @@
 	      console.log('updateBoard:', json);
 	      this.props.dispatch({
 	        type: "UPDATE_BOARD",
-	        pos: json.pos
+	        data: json
 	      });
 	    }
 	  }, {
@@ -38898,7 +38911,7 @@
 				return remoteController(state, action);
 	
 			case "UPDATE_BOARD":
-				console.log('RECV pos:', action.pos);
+				console.log('RECV data:', action.data);
 	
 				var nextBoard = [].concat(_toConsumableArray(state.board.slice(0, action.pos)), [logic.playerType(state.turn)], _toConsumableArray(state.board.slice(action.pos + 1)));
 	
