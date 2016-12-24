@@ -16,18 +16,31 @@ api = Api(app)
 
 board = Board()
 
-
-
-
-
-
 class NextBoard(Resource):
 
     def _pos_to_coordinate(self, pos):
-        x = int(pos % 19)
-        y = int(pos / 19)
-        print ("coordinate:", (x, y))
+        x = int(pos % board.size)
+        y = int(pos / board.size)
+        print ("pos:", pos, "=> coordinate:", (x, y))
         return (x, y)
+
+    def _coordinate_to_pos(self, coordinate):
+        x, y = coordinate
+        pos = x + y * board.size
+        print ("coordinate:", coordinate, "=> pos:", pos)
+        return pos
+
+
+    def _set_to_json(self, update_set):
+
+        res = []
+        for item in update_set:
+            x, y, color = item
+            pos = self._coordinate_to_pos((x, y))
+            res.append({"pos": pos,
+                        "color": color.name})
+
+        return res
 
 
     def post(self):
@@ -36,10 +49,8 @@ class NextBoard(Resource):
         coordinate = self._pos_to_coordinate(pos)
 
         board.move(coordinate)
-        return {
-            "pos": random.randint(0, 360),
-        }
-
+        update_json = self._set_to_json(board.update_set)
+        return update_json
 
     def get(self):
         pass

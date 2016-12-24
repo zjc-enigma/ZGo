@@ -38913,13 +38913,18 @@
 			case "UPDATE_BOARD":
 				console.log('RECV data:', action.data);
 	
-				var nextBoard = [].concat(_toConsumableArray(state.board.slice(0, action.pos)), [logic.playerType(state.turn)], _toConsumableArray(state.board.slice(action.pos + 1)));
-	
-				return {
-					board: nextBoard,
-					turn: state.turn + 1,
-					ko: null
-				};
+				/* let nextBoard = [
+	    ...state.board.slice(0, action.pos),
+	    logic.playerType(state.turn),
+	    ...state.board.slice(action.pos + 1)
+	    * ]
+	    */
+				/* return {
+	    *   board: nextBoard,
+	    *   turn: state.turn + 1,
+	    *   ko: null,
+	    * }*/
+				return _extends({}, state);
 	
 			default:
 				return {

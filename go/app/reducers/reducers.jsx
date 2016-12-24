@@ -60,17 +60,18 @@ export const game = (state={}, action) => {
     case "UPDATE_BOARD":
       console.log('RECV data:', action.data)
 
-      let nextBoard = [
-		    ...state.board.slice(0, action.pos),
-		    logic.playerType(state.turn),
-		    ...state.board.slice(action.pos + 1)
-      ]
-
-      return {
-        board: nextBoard,
-        turn: state.turn + 1,
-        ko: null,
-      }
+      /* let nextBoard = [
+		     ...state.board.slice(0, action.pos),
+		     logic.playerType(state.turn),
+		     ...state.board.slice(action.pos + 1)
+       * ]
+       */
+      /* return {
+       *   board: nextBoard,
+       *   turn: state.turn + 1,
+       *   ko: null,
+       * }*/
+      return {...state}
 
     default:
       return {
