@@ -5,6 +5,7 @@ from operator import add
 from enum import Enum
 from collections import namedtuple
 from functools import reduce
+import copy
 import pdb
 
 class IllegalMove(Exception):
@@ -27,6 +28,7 @@ class Color(Enum):
 
 
 class Position:
+
     def __init__(self, color=Color.empty, block_id=None, is_ko=False):
         self.color = color
         self.block_id = block_id
@@ -65,6 +67,8 @@ class Board:
                 for i in range(size)
             ]
             for j in range(size)]
+
+        self._renew_update_set(None, self.state)
 
         self.block_dict = {}
         self.move_num = 0
@@ -175,7 +179,35 @@ class Board:
             self._reset_pos(pos)
 
 
+    def _state_to_set(self, state):
+
+        if not state:
+            return set()
+
+        state_set = {
+            (i, j, pos.color)
+            for i, row in enumerate(state)
+            for j, pos in enumerate(row)
+        }
+
+        return state_set
+
+
+
+
+
+    def _renew_update_set(self, old_state, new_state):
+
+        prev_set = self._state_to_set(old_state)
+        current_set = self._state_to_set(new_state)
+        diff = current_set ^ prev_set
+        self.update_set = current_set & diff
+
+
+
     def _update_state(self, coordinate):
+
+        old_state = copy.deepcopy(self.state)
 
         neighbors_coordinate = list(self._get_neighbors_coordinate(coordinate))
 
@@ -212,6 +244,8 @@ class Board:
 
         self[coordinate].color = self.current_color
         self[coordinate].block_id = new_block_id
+
+        self._renew_update_set(old_state, self.state)
         return True
 
 
