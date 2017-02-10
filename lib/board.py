@@ -35,6 +35,11 @@ class Position:
         self.is_ko = is_ko
 
 
+    def __repr__(self):
+        return ('<color: %s>' % self.color)
+
+
+
 class Block:
 
     def __init__(self, color, coordinate_set, air_set, block_id=None):
@@ -61,12 +66,12 @@ class Board:
     def __init__(self, size=19):
         self.size = size
 
-        self.state = [
+        self.state = np.array([
             [
                 Position(Color.empty, None, False)
                 for i in range(size)
             ]
-            for j in range(size)]
+            for j in range(size)])
 
         self._renew_update_set(None, self.state)
 
@@ -124,8 +129,13 @@ class Board:
 
     def show_state(self):
         print("-"*37)
-        for pos_list in self.state:
-            print(" ".join(pos.color.value for pos in pos_list))
+        # for pos_list in self.state:
+        #     print(" ".join(pos.color.value for pos in pos_list))
+
+        for row in range(self.size):
+            row_string = " ".join(self.state[:, row])
+            print(row_string)
+            
         print("-"*37)
 
 
@@ -181,7 +191,7 @@ class Board:
 
     def _state_to_set(self, state):
 
-        if not state:
+        if state is None or len(state) == 0:
             return set()
 
         state_set = {

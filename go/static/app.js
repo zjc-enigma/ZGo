@@ -38108,9 +38108,14 @@
 	        "div",
 	        { className: "board" },
 	        board.map(function (s, i) {
-	          return _react2.default.createElement(_Place2.default, { key: i, index: i, state: s, onClick: function onClick() {
+	          return _react2.default.createElement(_Place2.default, {
+	            key: i,
+	            index: i,
+	            state: s,
+	            onClick: function onClick() {
 	              _this3.getNextBoard(i);
-	            } });
+	            }
+	          });
 	        })
 	      );
 	    }

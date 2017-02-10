@@ -46,10 +46,13 @@ export class Board extends Component {
     let { board, dispatch, turn } = this.props
 		return (
 			<div className="board">
-				{ board.map((s, i) => 
-					          <Place key={i} index={i} state={s} onClick={ () => {
-                      this.getNextBoard(i)
-                    }}/>
+				{ board.map((s, i) =>
+					<Place
+            key={i}
+            index={i}
+            state={s}
+            onClick={ () => { this.getNextBoard(i) }}
+          />
 				)}
 			</div>
 		)
