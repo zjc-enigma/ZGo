@@ -1,9 +1,8 @@
-
 import React from "react"
 
 import { BLACK, WHITE } from "../logic/logic"
 
-require("../css/Piece.scss")
+require("../css/piece.scss")
 
 const Piece = ({ state }) => {
 	switch (state) {

@@ -1,0 +1,5 @@
+* ENGLISH
+  Go board game implemented in react and redux
+
+* CHINESE
+  一个围棋 AI，使用 REACT、REDUX 实现前端部分

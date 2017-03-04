@@ -2,7 +2,7 @@ import { combineReducers } from "redux"
 
 import * as actions from "../actions/actions"
 import * as logic from "../logic/logic"
-//import { BLACK, WHITE } from "../logic/logic"
+import { BLACK, WHITE } from "../logic/logic"
 
 const controller = (state, action) => {
 	if (state.board[action.position] != null) {
@@ -50,6 +50,16 @@ const remoteController = (state, action) => {
 
 }
 
+const getPlayerType = typeStr => {
+  let playerType = BLACK;
+
+  if(typeStr == 'white') {
+    playerType = WHITE;
+  }
+
+  return playerType
+
+}
 
 export const game = (state={}, action) => {
   console.log("action", action)
@@ -59,19 +69,20 @@ export const game = (state={}, action) => {
 
     case "UPDATE_BOARD":
       console.log('RECV data:', action.data)
+      let actionData = action.data[0]
 
-      /* let nextBoard = [
-		     ...state.board.slice(0, action.pos),
-		     logic.playerType(state.turn),
-		     ...state.board.slice(action.pos + 1)
-       * ]
-       */
-      /* return {
-       *   board: nextBoard,
-       *   turn: state.turn + 1,
-       *   ko: null,
-       * }*/
-      return {...state}
+      let nextBoard = [
+		    ...state.board.slice(0, actionData.pos),
+		    //logic.playerType(state.turn),
+        getPlayerType(actionData.color),
+		    ...state.board.slice(actionData.pos + 1)
+      ]
+      return {
+        board: nextBoard,
+        turn: state.turn + 1,
+        ko: null,
+      }
+      //return {...state}
 
     default:
       return {

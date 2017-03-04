@@ -83,6 +83,9 @@ class Board:
         x, y = index
         return self.state[x][y]
 
+    def __position_to_str(self, pos):
+        return pos.color.value
+
     def _is_in_board(self, coordinate):
         # beyond board size
         x, y = coordinate
@@ -133,7 +136,11 @@ class Board:
         #     print(" ".join(pos.color.value for pos in pos_list))
 
         for row in range(self.size):
-            row_string = " ".join(self.state[:, row])
+            pos_str_list = []
+            for pos in self.state[:, row]:
+                pos_str_list.append(self.__position_to_str(pos))
+
+            row_string = " ".join(pos_str_list)
             print(row_string)
             
         print("-"*37)
