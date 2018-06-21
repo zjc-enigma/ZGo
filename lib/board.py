@@ -29,11 +29,9 @@ class Color(Enum):
 
 class Position:
 
-    def __init__(self, color=Color.empty, block_id=None, is_ko=False):
+    def __init__(self, color=Color.empty, block_id=None):
         self.color = color
         self.block_id = block_id
-        self.is_ko = is_ko
-
 
     def __repr__(self):
         return ('<color: %s>' % self.color)
@@ -65,19 +63,37 @@ class Board:
 
     def __init__(self, size=19):
         self.size = size
-
+        self.game_stack = []
+        self.ko_coordinate = None
         self.state = np.array([
             [
-                Position(Color.empty, None, False)
+                Position(Color.empty, None)
                 for i in range(size)
             ]
             for j in range(size)])
 
         self._renew_update_set(None, self.state)
-
         self.block_dict = {}
         self.move_num = 0
         self.current_color = Color.black
+        self._save_game()
+
+    def _save_game(self):
+        self.game_stack.append(
+            dict(
+                state=copy.deepcopy(self.state),
+                block_dict=copy.deepcopy(self.block_dict),
+                move_num=self.move_num,
+                current_color=self.current_color,
+                ko_coordinate=self.ko_coordinate))
+
+    def _load_game(self):
+        game_record = self.game_stack.pop()
+        self.state = game_record['state']
+        self.block_dict = game_record['block_dict']
+        self.current_color = game_record['current_color']
+        self.move_num = game_record['move_num']
+        self.ko_coordinate = game_record['ko_coordinate']
 
     def __getitem__(self, index):
         x, y = index
@@ -86,7 +102,7 @@ class Board:
     def __position_to_str(self, pos):
         return pos.color.value
 
-    def _is_in_board(self, coordinate):
+    def _inside_board(self, coordinate):
         # beyond board size
         x, y = coordinate
         if x < 0 or y < 0 or x >= self.size or y >= self.size:
@@ -104,8 +120,8 @@ class Board:
         if self[coordinate].color != Color.empty:
             return False
 
-        # rule not allowed
-        if self[coordinate].is_ko:
+        # ko not allowed
+        if self.ko_coordinate == coordinate:
             return False
 
         # rule not allowed
@@ -142,16 +158,16 @@ class Board:
 
             row_string = " ".join(pos_str_list)
             print(row_string)
-            
+
         print("-"*37)
 
 
     def _get_neighbors_coordinate(self, coordinate):
         x, y = coordinate
         neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
-        return filter(self._is_in_board, neighbors)
+        return filter(self._inside_board, neighbors)
 
-    def _change_turn(self):
+    def _change_color(self):
         self.current_color = Color.oppsite(self.current_color)
 
 
@@ -170,6 +186,14 @@ class Board:
         return new_block_id
 
     def _merge_blocks(self, block_id_list):
+        # 可能出现重复, 一定要先去重
+        block_id_list = list(set(block_id_list))
+        if len(block_id_list) == 0:
+            raise Exception("No block to merge!")
+
+        if len(block_id_list) == 1:
+            return block_id_list[0]
+
         merged_block = reduce(add, [self.block_dict[block_id]
                                     for block_id in block_id_list])
 
@@ -177,24 +201,33 @@ class Board:
             del self.block_dict[block_id]
 
         new_block_id = self._add_block(merged_block)
-        return new_block_id
+        for coord in merged_block.coordinate_set:
+            pos = self[coord]
+            pos.block_id = new_block_id
 
+        return new_block_id
 
     def _reset_pos(self, pos):
         pos.color = Color.empty
         pos.block_id = None
 
-
-
     def _eat_block(self, block_id):
         block_to_eat = self.block_dict[block_id]
         del self.block_dict[block_id]
 
-        for coord in block_to_eat.coordinate_set:
+        eat_set = block_to_eat.coordinate_set
+        if len(eat_set) == 1:
+            self[eat_set[0]].is_ko = True
+
+        for coord in eat_set:
             pos = self[coord]
             print("eat", pos.color, "at", coord)
             self._reset_pos(pos)
-
+            neighbors_coordinate = list(self._get_neighbors_coordinate(coord))
+            for neighbor in neighbors_coordinate:
+                neighbor_blk_id = self[neighbor].block_id
+                if neighbor_blk_id is not None:
+                    self.block_dict[neighbor_blk_id].air_set.add(coord)
 
     def _state_to_set(self, state):
 
@@ -209,18 +242,12 @@ class Board:
 
         return state_set
 
-
-
-
-
     def _renew_update_set(self, old_state, new_state):
 
         prev_set = self._state_to_set(old_state)
         current_set = self._state_to_set(new_state)
         diff = current_set ^ prev_set
         self.update_set = current_set & diff
-
-
 
     def _update_state(self, coordinate):
 
@@ -234,6 +261,7 @@ class Board:
 
         air_set = set()
         merge_block_id_list = []
+        enemy_block_list = []
 
         for coord in neighbors_coordinate:
             neighbor = self[coord]
@@ -247,12 +275,12 @@ class Board:
                 # reduce oppsite air
                 enemy_block = self.block_dict[neighbor.block_id]
                 enemy_block.air_set.remove(coordinate)
-                if enemy_block.air == 0:
-                    self._eat_block(neighbor.block_id)
+                #if enemy_block.air == 0:
+                #    self._eat_block(enemy_block.block_id)
+                enemy_block_list.append(enemy_block)
 
         new_block = Block(self.current_color, set([coordinate]), air_set)
         new_block_id = self._add_block(new_block)
-
 
         if len(merge_block_id_list) > 0:
             # more than one blocks, need to merge
@@ -262,27 +290,186 @@ class Board:
         self[coordinate].color = self.current_color
         self[coordinate].block_id = new_block_id
 
+        for item in enemy_block_list:
+            if item.air == 0:
+                self._eat_block(item.block_id)
+
         self._renew_update_set(old_state, self.state)
         return True
 
 
-    def move(self, coordinate):
-        self._update_state(coordinate)
+
+
+    def _check_position(self, coordinate):
+        # 顺序有讲究
+        # 不在棋盘内
+        if not self._inside_board(coordinate):
+            return False
+
+        # 落子位置为空
+        if self[coordinate].color != Color.empty:
+            return False
+
+        # 打劫位置
+        if coordinate == self.ko_coordinate:
+            return False
+
+        return True
+
+    def _prompt_coordinate(self):
+        while True:
+            input_str = input(
+                'Please input {} stone coordinate X,Y: '
+                .format(self.current_color))
+            x, y = input_str.split(",")
+            x = int(x)
+            y = int(y)
+            #if not isinstance(x, int) or not isinstance(y, int):
+            #    continue
+            if (x < 0 or x >= self.size) or (y < 0 or y >= self.size):
+                continue
+
+            return (x, y)
+
+
+    def _calc_block(self, coordinate):
+        new_block = Block(self.current_color, set([coordinate]), set())
+        new_block_id = self._add_block(new_block)
+        self[coordinate].block_id = new_block_id
+        self[coordinate].color = self.current_color
+
+        neighbors = self._get_neighbors_coordinate(coordinate)
+
+        merge_list = [new_block_id]
+        for neighbor in neighbors:
+            if self[neighbor].color == self.current_color:
+                merge_list.append(self[neighbor].block_id)
+
+        self._merge_blocks(merge_list)
+
+    def _calc_air(self, coordinate):
+
+        current_block_id = self[coordinate].block_id
+        current_block = self.block_dict[current_block_id]
+        neighbors = self._get_neighbors_coordinate(coordinate)
+        eating_list = []
+        for neighbor in neighbors:
+            if self[neighbor].color == self.current_color:
+                pass
+
+            elif self[neighbor].color == Color.empty:
+                current_block.air_set.add(neighbor)
+
+            else:
+                neighbor_block_id = self[neighbor].block_id
+                neighbor_block = self.block_dict[neighbor_block_id]
+                if neighbor_block_id in eating_list:
+                    pass
+                else:
+                    neighbor_block.air_set.remove(coordinate)
+                    if neighbor_block.air == 0:
+                        eating_list.append(neighbor_block_id)
+
+        if current_block.air == 0 and len(eating_list) == 0:
+            return False, eating_list
+
+        return True, eating_list
+
+    def _update_status(self):
+        self.ko_coordinate = None
+        self.move_num += 1
+        self._change_color()
+
+    def _remove_eaten_stone(self, eating_list):
+        eat_num = len(eating_list)
+        while eating_list:
+            block_id = eating_list.pop()
+            block = self.block_dict[block_id]
+            del self.block_dict[block_id]
+
+            if len(block.coordinate_set) == 1 and eat_num == 1:
+                # 只吃一个子, 打劫的情况
+                self.ko_coordinate = min(block.coordinate_set)
+                print('ko coordinate : {}'.format(self.ko_coordinate))
+
+            for coordinate in block.coordinate_set:
+                position = self[coordinate]
+                position.color = Color.empty
+                position.block_id = None
+
+                neighbors = self._get_neighbors_coordinate(coordinate)
+
+                for neighbor in neighbors:
+                    if self[neighbor].color == Color.empty \
+                       or self[neighbor].color == self[coordinate].color:
+                        pass
+                    else:
+                        neighbor_block_id = self[neighbor].block_id
+                        neighbor_block = self.block_dict[neighbor_block_id]
+                        neighbor_block.air_set.add(coordinate)
+
+
+
+
+    def move(self):
+        # 压栈
+        while True:
+
+            self._save_game()
+            while True:
+                coordinate = self._prompt_coordinate()
+                if self._check_position(coordinate):
+                    break
+
+            self._calc_block(coordinate)
+            status, eating_list = self._calc_air(coordinate)
+            if status == False:
+                print("Invalid coordinate due to the air rule")
+                self._load_game()
+                continue
+
+            self._update_status()
+            self._remove_eaten_stone(coordinate, eating_list)
+            break
+
         self.show_state()
-        self._change_turn()
+
+
+    def move_one_step(self, coordinate):
+        self._save_game()
+        if not self._check_position(coordinate):
+            print("Invalid coordinate")
+            self._load_game()
+            return False
+
+        self._calc_block(coordinate)
+        status, eating_list = self._calc_air(coordinate)
+        if status == False:
+            print("Invalid coordinate due to the air rule")
+            self._load_game()
+            return False
+
+        self._update_status()
+        self._remove_eaten_stone(eating_list)
+        self.show_state()
+
 
 
 
 if __name__ == "__main__":
     # TODO: need more tests
     b = Board()
-    b.move((3,3))
-    b.move((3,4))
-    b.move((4,4))
-    b.move((4,3))
-    b.move((2,3))
-    b.move((4,5))
-    b.move((3,5))
-    b.move((5,5))
-    b.move((5,3))
-    b.move((5,4))
+    b.move_one_step((3,3))
+    b.move_one_step((3,4))
+    b.move_one_step((4,4))
+    b.move_one_step((4,3))
+    b.move_one_step((2,3))
+    b.move_one_step((4,5))
+    b.move_one_step((3,5))
+    b.move_one_step((5,5))
+    b.move_one_step((5,3))
+    b.move_one_step((5,4))
+    b.move_one_step((4,4))
+    b.move_one_step((4,2))
+    #pdb.set_trace()
+    b.move_one_step((4,4))
