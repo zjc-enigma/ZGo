@@ -55,7 +55,12 @@ class Block:
     def __add__(self, other):
         if self.color == other.color:
             new_coordinate_set = self.coordinate_set | other.coordinate_set
-            new_air_set = self.air_set | other.air_set - new_coordinate_set
+            # | 求并集的优先级很低, 需要加括号否则会出错
+            new_air_set = (self.air_set | other.air_set) - new_coordinate_set
+            # new_air_set = self.air_set | other.air_set
+            # for i in new_coordinate_set:
+            #     if i in new_air_set:
+            #         new_air_set.remove(i)
             return Block(self.color, new_coordinate_set, new_air_set)
 
 
@@ -353,6 +358,7 @@ class Board:
         current_block = self.block_dict[current_block_id]
         neighbors = self._get_neighbors_coordinate(coordinate)
         eating_list = []
+        removed_air_list = []
         for neighbor in neighbors:
             if self[neighbor].color == self.current_color:
                 pass
@@ -363,10 +369,12 @@ class Board:
             else:
                 neighbor_block_id = self[neighbor].block_id
                 neighbor_block = self.block_dict[neighbor_block_id]
-                if neighbor_block_id in eating_list:
+                if neighbor_block_id in eating_list \
+                   or neighbor_block_id in removed_air_list:
                     pass
                 else:
                     neighbor_block.air_set.remove(coordinate)
+                    removed_air_list.append(neighbor_block_id)
                     if neighbor_block.air == 0:
                         eating_list.append(neighbor_block_id)
 
@@ -382,6 +390,8 @@ class Board:
 
     def _remove_eaten_stone(self, eating_list):
         eat_num = len(eating_list)
+        # remove dup blocks
+        eating_list = list(set(eating_list))
         while eating_list:
             block_id = eating_list.pop()
             block = self.block_dict[block_id]
@@ -393,13 +403,11 @@ class Board:
                 print('ko coordinate : {}'.format(self.ko_coordinate))
 
             for coordinate in block.coordinate_set:
-                position = self[coordinate]
-                position.color = Color.empty
-                position.block_id = None
 
                 neighbors = self._get_neighbors_coordinate(coordinate)
 
                 for neighbor in neighbors:
+                    # 先处理提子的邻接棋块, 若先把提子点置为empty, 下面这个if就没有意义
                     if self[neighbor].color == Color.empty \
                        or self[neighbor].color == self[coordinate].color:
                         pass
@@ -407,6 +415,11 @@ class Board:
                         neighbor_block_id = self[neighbor].block_id
                         neighbor_block = self.block_dict[neighbor_block_id]
                         neighbor_block.air_set.add(coordinate)
+                # 应后面再处理提子点
+                position = self[coordinate]
+                position.color = Color.empty
+                position.block_id = None
+
 
 
 
@@ -437,6 +450,7 @@ class Board:
 
     def move_one_step(self, coordinate):
         self._save_game()
+        print("input {} coordinate is {}".format(self.current_color, coordinate))
         if not self._check_position(coordinate):
             print("Invalid coordinate")
             self._load_game()

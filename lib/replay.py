@@ -21,7 +21,7 @@ class Replay:
         self.white_name = root_node.get("PW")
         self.game_steps = game.get_main_sequence()
 
-    def auto_play(self, delay=0.5):
+    def auto_play(self, delay=0):
         for step in self.game_steps:
             _, coordinate = step.get_move()
             if coordinate is None:
